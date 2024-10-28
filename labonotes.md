@@ -332,4 +332,347 @@ grep name /etc/resolv.conf
 ## Listening sockets - deamon software
 
 ### 1. ss: show sockets
+- tcp poort nummer op een server hangt vast aan een sockets -> voor TCP SYN te ontvangen = **listening socket** met **ss -l** kunnen we dit opvragen
 
+``` bash
+ss -t
+ss -tln
+```
+
+### 2 deamon: server software
+- **deamon**: is een applicatie die opgestart wordt op een computer, los van andere gebruikers, deze doftware is permanent actief 
+<br>
+als dit met het IP-adres gelinkt zijn wordt een listening socket aangemaakt die een poortnummer bindt aan een bepaalde daemon
+
+``` bash
+systemctl status nginx
+# starten / stoppen
+systemctl start nginx
+systemctl stop nginx
+# enabled / dissabled
+systemctl disable nginx
+systemctl enable nginx
+```
+- de config van een daemon staat in /etc -> bij aanpassen moet **systemctl reload@**
+
+### opdracht
+
+### 1. Bekijk welke poorten er allemaal actief zijn op jouw VM. Stop de DNS daemon bind9, en bemerk het verschil. Welke poorten gebruikt de DNS daemon allemaal?
+``` bash
+# hoeveel actief
+ss -tln
+# stoppen
+systemctl stop bind9
+ss -tln
+
+
+```
+
+### 2. Verwijder het programma ‘cups-daemon’: apt purge cups-daemon Welke poort was er in gebruik door de software (voor printer-services die we niet gebruiken)?
+
+``` bash
+apt purge cups-daemon
+```
+### 3. Installeer de software apache2. Kan je merken welke poort er actief geworden is?
+``` bash
+sudo apt install apache2
+ss -tln
+
+```
+
+### 4. Installeer de software nginx. Deze daemon wil echter niet opstarten. Leg uit waarom.
+``` bash
+sudo apt install nginx
+sudo systemctl start nginx
+sudo systemctl status nginx
+
+```
+
+- shit werkt wel gwn tho, wss probeert te luisteren op poort 80, maar deze is al ingebruik door apache2
+
+### 5. Stel de poort van apache2 in op 8080 – dit kan via het bestand /etc/apache2/ports.conf. Herlaad deze daemon. Kan je de wijziging zien in je listening sockets? Zou je nu nginx kunnen opstarten? Leg uit.
+``` bash
+sudo vi /etc/apache2/ports.conf
+
+"Listen 8080"
+sudo systemctl reload apache2
+ss -tln
+sudo systemctl start nginx
+
+# om te checken of zeker gelukt is 
+lsof -i -P -n | grep apache2
+```
+
+
+## extra: 
+### wget: 
+- laat toe om met http een bestand van een webserver te downloaden en op te slaan als een bestand
+``` bash
+wget 157.193.215.171/pearson.png
+```
+### curl: 
+- laat toe om met http een bestand van een webserver te doqnloaden en weer te geven op de CLI
+``` bash
+curl www.ugent.be
+```
+
+## Active sockets - client en deamon software
+
+### 1. Client ports
+- als de host geen enkele tcp verbinding opgestart heeft, zien we dat er op het systeem geen enkele tcp socket actief is 
+``` bash
+ss -tn
+```
+### 2. Netcat - testn van listening sockets
+- **netcat**: wordt gebruikt om een tcp verbinding te openen met een listening socket
+- gelijkaardige mogelijkheden als telnet, maar uitgebreidere opties
+
+``` bash
+comnet1@home:~$ netcat mail.test.atlantis.ugent.be 110
+# antwoord: 
+        +OK Hello there.
+        USER comnet1
+        +OK Password required.
+        PASS XXXXX
+        +OK logged in.
+        LIST
+        +OK POP3 clients that break here, they violate STD53.
+        .
+        QUIT
+        +OK Bye-bye.
+``` 
+
+- laat toe snel te testen of een bepaalde poort op een server geactiveerd is of niet
+``` bash
+netcat -vz -w 1 wwww.standaard.be 80
+## antwoord
+Connection to www.standaard.be 80 port [tcp/http] succeeded!
+
+comnet1@home:~$ netcat -vz -w 1 www.standaard.be 21
+## antwoord
+netcat: connect to www.standaard.be port 21 (tcp) timed out
+```
+
+## Netcat - opzetten van testes
+- kan er listening socket mee aanmaken
+``` bash
+netcat -v -l -p 6789
+```
+- het ip adres of het localhost adres van de node kan ook op dit poortnummer aangesproken worden
+``` bash
+netcat localhost 6789
+```
+
+## opdracht 
+#### 1. Maak een SSH verbinding naar home.test.atlantis.ugent.be ; bekijk voordien en nadien de uitkomst met ss –tn. Leg uit vanaf wanneer een poortnummer in gebruik is op een client.
+
+``` bash
+ssh home.test.atlantis.ugent.be
+ss -tn
+```
+- zal niewe verbinding opgezet worden naar poort 22 (de poort voor ssh) 
+
+#### 2. Maak nadien een tweede SSH verbinding vanaf dezelfde client. Leg uit a.d.h.v. het resultaat van ss hoe de pakketten van deze beide verbindingen door de computers uit elkaar kunnen gehouden worden.
+
+``` bash
+ssh home.test.atlantis.ugent.be
+ssh home.test.atlantis.ugent.be
+```
+- Uitleg: Elke verbinding wordt onderscheiden door een unieke 4-tuple: <src IP, dest IP, src port, dst port>. Hoewel beide verbindingen hetzelfde src IP, dest IP en dst port hebben, verschillen ze in de bronpoort (source port) op de client. Deze unieke combinatie zorgt ervoor dat de twee verbindingen niet door elkaar gehaald worden.
+
+#### 3. Bekijk de listening sockets op deze server. Leg van 3 poorten uit welke functie ze vervullen op de server. Hint: bekijk de inhoud van het bestand /etc/services.
+
+- poort 22: ssh
+- poort 80: http, webverkeer zonder encryptie
+- poort 443: https
+
+#### 4. Je installeerde reeds de nginx webserver. Kan je met netcat testen of hij werkt op jouw systeem? Hoe doe je dat? Kan je met wget het index.html downloaden?
+
+``` bash
+netcat -vz localhost 80 
+# antwoord: 
+Connection to localhost 80 port [tcp/http] succeeded!
+
+wget http://localhost   
+# je krijg juiste output
+``` 
+
+#### 5. Je installeerde reeds de apache2 webserver, en werkte het poortnummer bij. Kan je met netcat testen of hij werkt op jouw systeem? Hoe doe je dat? Kan je met wget het index.html downloaden?
+
+``` bash
+netcat -vz localhost 8080
+wget http://localhost:8080
+```
+
+#### 6. Stel een poortnummer open op je computer (netcat listening socket), zodat je er vanuit een 2e terminal met netcat mee kan verbinden. Kan je dit combineren met input/output redirection (zie vorig labo), zodat je het bestand /etc/services kan sturen van de ene terminal naar de andere doorheen deze TCP socket? Hint: http://www.microhowto.info/howto/copy_a_file_from_one_machine_to_another_using_netcat
+
+``` bash
+# opstarten
+netcat -l -p 6789
+
+# ander venster
+netcat localhost 6789
+
+# input redirection
+cat /etc/services | netcat localhost 6789
+```
+
+
+
+
+
+## Socets - programming in python3
+### 1. TCP server
+``` python
+## maakt een socket aan op poort 678
+from socket import *
+
+s = socket(AF_INET, SOCK_STREAM)
+s.bind(('', 678))
+s.listen(1)
+
+while True:
+    c, addr = s.accept()
+    g = ("Hello %s" % addr[0])
+    c.send(bytes(g, encoding='utf-8'))
+    c.close()
+```
+
+### 2. TCP client
+``` python
+# een primitieve client die verbindt met deze socket
+
+from socket import *
+
+s = socket(AF_INET, SOCK_STREAM)
+s.connect(('127.0.0.1', 678))
+s.send('Hello World'.encode())
+data = s.recv(1024)
+s.close()
+
+print('Received', data)
+```
+
+
+## opdracht
+
+#### 1. Kan je het TCP gesprek capturen met WireShark? Op welke interface werk je?
+- de server
+
+``` python
+from socket import *
+
+# Maak een TCP/IP-socket op poort 6789
+s = socket(AF_INET, SOCK_STREAM)
+s.bind(('', 6789))
+s.listen(1)
+
+print("Server is listening on port 6789...")
+
+while True:
+    # Accepteer inkomende verbindingen
+    c, addr = s.accept()
+    print(f"Connection from {addr}")
+
+    # Stuur een begroeting terug, inclusief het IP-adres van de client
+    g = f"Hello {addr[0]}"
+    c.send(bytes(g, encoding='utf-8'))
+    c.close()
+```
+- de client
+``` python
+from socket import *
+
+# Maak verbinding met de server op het IP-adres van jouw VM en poort 6789
+s = socket(AF_INET, SOCK_STREAM)
+s.connect(('10.0.2.15', 6789))  # Vervang '10.0.2.15' door jouw VM IP
+
+# Stuur een bericht naar de server
+s.send('Hello World'.encode())
+
+# Ontvang het antwoord van de server
+data = s.recv(1024)
+s.close()
+print('Received', data)
+```
+- uitvoeren
+``` bash
+python3 tcp-server.py
+python3 tcp-client.py
+``` 
+
+
+#### 2. Kan je de server code aanpassen zodat hij het client poortnummer teruggeeft, i.p.v. het IP-adres van de client?
+// low key skipped ket get
+- gebruik tcp.port == 6789 in wireshark
+
+- pas de servercode aan: 
+``` python
+
+from socket import *
+
+# Maak een TCP/IP-socket op poort 6789
+s = socket(AF_INET, SOCK_STREAM)
+s.bind(('', 6789))
+s.listen(1)
+
+print("Server is listening on port 6789...")
+
+while True:
+    # Accepteer inkomende verbindingen
+    c, addr = s.accept()
+    print(f"Connection from {addr}")
+
+    # Stuur het client poortnummer terug, in plaats van het IP-adres
+    g = f"Hello, your port is {addr[1]}"
+    c.send(bytes(g, encoding='utf-8'))
+    c.close()
+
+# dit zou de output moeten zijn 
+Received b'Hello, your port is 12345'
+```
+
+
+## extra 2: secure CoPy
+-**scp commando**: laat toe bestanden te kopieren doorheen een ssh verbinding, is een veilige ftp verbinding
+
+zie wc voor die extra shit
+
+## Socket scanning: nmap
+
+**Nmap** is een krachtige tool voor het uitvoeren van **portscans** op netwerken en apparaten. Het helpt bij het detecteren van open poorten door **SYN-pakketten** naar specifieke poorten te sturen en te analyseren hoe de host reageert. 
+
+- **Open poort**: Als de server een SYN/ACK terugstuurt, betekent dit dat er een **listening socket** actief is en de poort open is.
+- **Filtered poort**: Als er geen reactie is (meestal door een firewall die de SYN-pakketten blokkeert), wordt de status als **filtered** gemarkeerd.
+
+Nmap start standaard met een **ping-probe** om te controleren of een host actief is. Met de optie `-Pn` wordt deze probe overgeslagen, wat nuttig is bij firewalls die ping-verkeer blokkeren. Nmap ondersteunt ook het scannen van meerdere poorten tegelijk, en er zijn talloze opties om gedetailleerde netwerk-informatie te verzamelen.
+
+## opdrachten
+
+
+#### 1. Voer een basisscan uit op scanme.nmap.org. Welke poorten zijn open? Welke poorten werden allemaal getest?
+
+``` bash
+nmap scanme.nmap.org
+``` 
+
+
+#### 2. Voer een scan uit op de server home.test.atlantis.ugent.be. Welke poorten zijn er allemaal actief op deze server?
+
+- nmap test de meest voorkomende poorten
+``` bash
+nmap home.test.atlantis.ugent.be
+``` 
+
+#### 3. Start WireShark op, en start capturing. Scan met nmap je eigen Linux VM op poort 25. Stop het capturen. Welke status krijg je terug? Kan je dit linken aan de TCP-pakketten die je ziet?
+``` bash
+nmap -p 25 localhost
+```
+
+
+#### 4. Herhaal dit experiment, maar test nu poort 25 op de server. home.test.atlantis.ugent.be. Welke status krijg je terug? Kan je dit linken aan de TCP-pakketten die je ziet?
+``` bash
+nmap -p 25 home.test.atlantis.ugent.be
+```
+
+#### 5. Na stap 3 en 4 zou je het onderscheid moeten kunnen maken tussen open en filtered als status. Voer een basis portscan uit op www.meemoo.be, en formuleer welk advies je zou kunnen geven aan de beheerder van de firewall van deze server.
