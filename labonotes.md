@@ -297,6 +297,39 @@ patrick IN A 10.0.2.16
 om de een of andere reden kan hij dat bestand niet vinden fz dus kanker ma boeie kga iets fout gedaan hebben suk mie nuts
 
 
+## DNS Client - bijwerken default server
+### 1. Client default DNS configuratie
+
+- voe de moment gebruit de host een externe DNS-server --> willen eigen DNS server gebruiken
+- de DNS server die de client gebruikt kan je terug vinden in "/etc/resolf.conf"
 
 
+##### DNS resolutie met korte namen: 
+- korte namen binnen een domein dat automatisch uitgebreid wordt tot een volledige domeinnaam
+- aanpassen in "/etc/resolv.conf"
+
+##### probleem:
+- deze wijziging is niet blijvend, wordt vaak dynamisch overschreven
+
+##### resolvconf: 
+- gebruik dit om handmatig wijziginen aan te brengen in /etc/resolf.conf
+
+##### toevoegen van een vase DNS-server
+``` bash
+/etc/resolfconf/resolv.conf.d/base # -> set to 8.8.4.4
+resolvconf -u 
+``` 
+- testen of inorde
+``` bash
+grep name /etc/resolv.conf
+```
+
+### 2. opdracht eigen dns bijwerken
+- aanpassen naar 127.0.0.1
+
+
+# Labo 4
+## Listening sockets - deamon software
+
+### 1. ss: show sockets
 
