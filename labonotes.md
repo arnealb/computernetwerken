@@ -676,3 +676,140 @@ nmap -p 25 home.test.atlantis.ugent.be
 ```
 
 #### 5. Na stap 3 en 4 zou je het onderscheid moeten kunnen maken tussen open en filtered als status. Voer een basis portscan uit op www.meemoo.be, en formuleer welk advies je zou kunnen geven aan de beheerder van de firewall van deze server.
+
+
+
+
+
+
+# Labo 5: ip routing mininet 
+- dit labo: De organisatie van ip-ranges voor kleine (bedrijfs)netwerken |  hoe ip-adressen op hosts en op routers ingesteld worden
+
+
+## Emulatie: mininet
+- meerdere hosts en viruele router organiseren door meerdere VMs aan elkaar te schakelen in VMware of VirtualBox
+- We hebben een omgeveing nodig waar verschillende netwerkkaarten kunnen op bestaan en waar de nodige applicatielaag software op actief kan zijn.
+ -> **Mininet**
+
+``` bash
+# eerst shit installeren: 
+sudo –s ## (werk als root)
+wget http://157.193.215.171/cnet_lab_IProuting.py
+python cnet_lab_IProuting.py
+
+# kan met nodes de ingeladen nodes opvragen
+nodes
+# geeft: available nodes are: 
+#        c0 ftp rISP rout s1 s2 s3 s4 visit web ws1 ws2 ws3
+
+
+# kan je met mininet een CLI opstarten voor elke node met xterm <naam van node>
+xterm ws1 # dit opent nieuw cli venster
+
+```
+
+## your address range
+# opdracht: 
+# Computernetwerken II - cnet2
+# Lab 4: IP routing
+> (base 02105980) - complete your personal information below
+
+date:
+
+name: 
+year:
+name:
+year: 
+
+## Design
+
+### IP addresses
+> These are the assigned IP address for the different hosts in your network.
+
+| Host                         | IP address                                 |
+| ---------------------------- | ------------------------------------------ |
+| workstation1                 | 10.20.82.243                      |
+| workstation2                 | 10.20.82.244                      |
+| webserver                    | 10.20.82.28                           |
+| ftpserver                    | 10.20.82.62                           |
+| Host in 12-host network      | 10.20.82.180                         |
+| Uplink address on ISP router | 10.20.82.254/<Smallest SN possible> |
+
+
+### Subnetworks calculated
+> Fill in the resulting network information in the table below; use the format as in the theoretical exercises (Linux differs on some points in itâ€™s display).
+
+| Network | Netmask | Interface |
+| ------- | ------- | -----
+xterm ws1 # dit opent nieuw cli venster
+
+```
+
+## your address range
+
+
+---- |
+|         |         |           |
+|         |         |           |
+|         |         |           |
+|         |         |           |
+
+## Configure the network
+
+### ... the router
+> screenshot of the router pinging external node
+
+
+### ... the hosts
+> What do you need to add on the host to make this work? 
+
+> screenshot of the workstation pinging the webserver 
+
+> Your built-up routing table of the company router (ip route output):
+
+
+### ... the ISP router
+> Which networks are we missing?
+
+> screenshot of the workstation pinging external node
+
+> Explain what general rule make the entry match.
+```
+## het maken van de shit : 
+
+#### 2.1 Configuring interfaces: 
+``` bash
+sudo ip address add 10.20.82.241/29 dev rout-eth1   # Workstation subnet
+sudo ip address add 10.20.82.1/25 dev rout-eth2     # Server park
+sudo ip address add 10.20.82.177/28 dev rout-eth3   # Visitor subnet
+sudo ip address add 10.20.82.253/30 dev rout-eth4   # Uplink naar ISP
+```
+- uitvoeren voor het configureren van de interfaces
+
+``` bash
+sudo ip route add 10.20.82.240/29 dev rout-eth1   # Route naar Workstation subnet
+sudo ip route add 10.20.82.0/25 dev rout-eth2     # Route naar Server park
+sudo ip route add 10.20.82.176/28 dev rout-eth3   # Route naar Visitor subnet
+sudo ip route add 10.20.82.252/30 dev rout-eth4   # Route naar ISP uplink
+sudo ip route add default via 10.20.82.254        # Standaardroute naar ISP
+```
+- uitvoeren voor de routes te configureren
+
+door nu uit te voeren krijg ik dit: 
+``` bash
+ip route
+```
+![foto](/labo5_ip_routing/fotos/routes.png)
+
+
+#### nu de routes in de verschillende hosts uitvoeren
+- als de foutmelding komt dat de device niet gevonden werd: 
+``` bash
+ip link show
+#wat nu na de "2:" staat is de device name
+```
+- voor ws1
+```bash
+sudo ip address add 10.20.82.2/25 dev ws1-eth0
+sudo ip route add default via 10.20.82.1 
+```
