@@ -1110,7 +1110,7 @@ ping 10.20.101.50
 
 ##### hoe kunnen ze werken zoals het nu is?
 
-de verbindingen werken standaard in access-modus en staan in vlan1, dit betekent dat alleen verkeer van vlan1 wordt ddoorgestuurd tussen switches,
+de verbindingen werken standaard in access-modus en staan in van1, dit betekent dat alleen verkeer van vlan1 wordt ddoorgestuurd tussen switches,
 het verkeer van andere vlans wordt niet doorgestuurd omdat er geen trunking is geconfigureerd, hierdoorkunnne host in verschillende vlans of
 op verschillende switches niet met elkaar communiceren
 
@@ -1282,3 +1282,31 @@ show spanning-tree
 1. Root bridge: S0 si nu de root bridge voor vlan 10, vlan 20, vlan 33
 2. actieve forwardigns poorten: poorten op S0 die verbinden zijn met s1,s2, s3 zullen in forwarding staan
 3. geblokkeerde poorten: op s1, s2, s3 wordt 1 poort per redunante verbinding naar een andere switch in bloking mode geplaatst door stp
+
+### Bekijk op S1, S2 en S3 welke poorten geblokkeerd zijn door het STP protocol. Beschrijf in je persoonlijke verslag hoe de tree er uitziet voor jouw drie VLANs
+
+1. vlan 1: niet sure of dit allemaal klopt tho
+
+```txt
+S0>show spanning-tree vlan 20
+VLAN0020
+  Spanning tree enabled protocol ieee
+  Root ID    Priority    24596
+             Address     0050.0F5D.2C43
+             This bridge is the root                                            toont de root
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+
+  Bridge ID  Priority    24596  (priority 24576 sys-id-ext 20)
+             Address     0050.0F5D.2C43
+             Hello Time  2 sec  Max Age 20 sec  Forward Delay 15 sec
+             Aging Time  20
+
+Interface        Role Sts Cost      Prio.Nbr Type
+---------------- ---- --- --------- -------- --------------------------------
+Gi1/0/1          Desg FWD 19        128.1    P2p                                fwd is dat forwarding, dus niet geblockt
+Gi1/0/4          Desg FWD 4         128.4    P2p
+Gi1/0/3          Desg FWD 19        128.3    P2p
+Gi1/0/2          Desg FWD 19        128.2    P2p
+
+S0>
+```
