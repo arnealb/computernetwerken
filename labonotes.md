@@ -885,6 +885,81 @@ sudo ip address add 10.20.82.2/25 dev ws1-eth0
 sudo ip route add default via 10.20.82.1
 ```
 
+## effectief inorde nu:
+
+- voor routing table zie goodnotes ofc
+
+#### 1. router instellen
+
+- alle subnetten
+
+```bash
+sudo ip address add 10.20.82.241/29 dev rout-eth2  # Workstation subnet
+sudo ip address add 10.20.82.1/26 dev rout-eth3   # Server subnet
+sudo ip address add 10.20.82.177/28 dev rout-eth4 # Visitor subnet
+sudo ip address add 10.20.82.253/30 dev rout-eth1 # Uplink naar ISP
+```
+
+- default route zodat verkeer naar het internet via de ISP-router gestuurd wordt
+
+```bash
+sudo ip route add default via 10.20.82.254
+# testen
+ping 10.20.82.254
+ping 8.8.8.8
+```
+
+- config workstation1
+
+```bash
+sudo ip address add 10.20.82.243/29 dev eth0
+sudo ip route add default via 10.20.82.241
+
+ping 10.20.82.241  # Ping de router
+```
+
+- config workstation2
+
+```bash
+sudo ip address add 10.20.82.244/29 dev eth0
+sudo ip route add default via 10.20.82.241
+ping 10.20.82.241  # Ping de router
+```
+
+- config webserver
+
+```bash
+sudo ip address add 10.20.82.28/26 dev eth0
+sudo ip route add default via 10.20.82.1
+ping 10.20.82.241  # Ping de router
+```
+
+- config ftpserver
+
+```bash
+sudo ip address add 10.20.82.62/26 dev eth0
+sudo ip route add default via 10.20.82.1
+ping 10.20.82.1    # Ping de router
+ping 10.20.82.243  # Ping een Workstation
+```
+
+- config visitor
+
+```bash
+sudo ip address add 10.20.82.178/28 dev eth0
+sudo ip route add default via 10.20.82.177
+ping 10.20.82.177  # Ping de router
+ping 10.20.82.243  # Ping een Workstation
+```
+
+- laatste deel: van de isp server: isp moet @eten hoe verkeer naar de bedrijsnetwerken meot worden geretourneerd:
+
+```bash
+sudo ip route add 10.20.82.0/24 via 10.20.82.253
+```
+
+- nu kan van uit alle hosts naar alles geping worden
+
 # lab6: L2 configurations
 
 ## Netwerk beschrijving
