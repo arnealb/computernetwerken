@@ -852,7 +852,7 @@ sudo ip address add 10.20.82.253/30 dev rout-eth4   # Uplink naar ISP
 - uitvoeren voor het configureren van de interfaces
 
 ```bash
-sudo ip route add 10.20.82.240/29 dev rout-eth1   # Route naar Workstation subnet
+sudo ip route add 10.20.82240/29 dev rout-eth1   # Route naar Workstation subnet
 sudo ip route add 10.20.82.0/25 dev rout-eth2     # Route naar Server park
 sudo ip route add 10.20.82.176/28 dev rout-eth3   # Route naar Visitor subnet
 sudo ip route add 10.20.82.252/30 dev rout-eth4   # Route naar ISP uplink
